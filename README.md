@@ -1,5 +1,4 @@
-# 🐘 PostgreSQL 18 HA Cluster on Kubernetes
-
+# 🐘 Cloud-Native PostgreSQL 18 HA Cluster on Kubernetes
 
 
 ## 📋 Project Overview
