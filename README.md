@@ -1,6 +1,4 @@
- 🚀 PostgreSQL 18 HA Cluster on Kubernetes
-
-Cloud-native PostgreSQL high availability setup using CloudNativePG, PgBouncer, MinIO, and Prometheus/Grafana.
+# 🐘 PostgreSQL 18 HA Cluster on Kubernetes
 
 
 
