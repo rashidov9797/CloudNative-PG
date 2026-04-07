@@ -6,7 +6,35 @@ Cloud-Native PostgreSQL 18 HA Cluster (Kubernetes)
 
 ## 📋 Project Overview
 
-This project demonstrates a **production-grade PostgreSQL High Availability platform** built on Kubernetes (K3s) using CloudNativePG.
+This project demonstrates a production-grade PostgreSQL High Availability platform built on Kubernetes using CloudNativePG.
+
+The setup includes automated failover, read scaling with PgBouncer, S3-compatible backups, and real-time monitoring with Prometheus and Grafana.
+
+The goal of this project is to simulate a real-world production database environment with high availability, observability, and performance validation.
+
+
+
+
+## 🚀 Tech Stack
+
+<p align="left">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg" width="40"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-plain.svg" width="40"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-plain.svg" width="40"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" width="40"/>
+</p>
+
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![CloudNativePG](https://img.shields.io/badge/CloudNativePG-operator-blue)
+![PgBouncer](https://img.shields.io/badge/PgBouncer-connection_pooler-green)
+![MinIO](https://img.shields.io/badge/MinIO-S3-red?logo=minio&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-orange?logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+![K3s](https://img.shields.io/badge/K3s-lightgrey)
+![Rocky Linux](https://img.shields.io/badge/Rocky_Linux-10B981?logo=linux&logoColor=white)
+
+
 
 Key features:
 
@@ -21,6 +49,15 @@ Key features:
 ---
 
 ## 🏗️ Architecture
+
+### Architecture Description
+
+- Primary node handles write operations
+- Standby nodes handle read traffic
+- PgBouncer routes RW and RO connections
+- MinIO stores backups (base + WAL)
+- Prometheus collects metrics
+- Grafana visualizes system behavior
 
 <img width="631" height="502" alt="image" src="https://github.com/user-attachments/assets/333f7eb6-c9be-47f3-923b-fea1146db9db" />
 
@@ -42,10 +79,11 @@ Key features:
 ## ⚙️ Key Parameters
 
 - Instances: 9 (1 primary + 8 standby)
-- Storage: 10Gi
-- Pool mode: transaction
-- Backup: S3 (MinIO)
-- Replication: streaming
+- Storage: 10Gi per node
+- Replication: streaming (async)
+- Pool mode: transaction (PgBouncer)
+- Backup: continuous WAL archiving to MinIO
+- Monitoring: Prometheus + Grafana
 
 ---
 
@@ -70,8 +108,16 @@ kubectl get pods -n cnpg-cluster
 <img width="784" height="391" alt="image" src="https://github.com/user-attachments/assets/4c3eeaac-cb75-4eb9-8133-7ae9e1f40df5" />
 
 
+---
 
 ## 💾 Backup Validation
+
+This confirms that:
+
+- Base backups are successfully created
+- WAL files are continuously archived
+- The cluster supports point-in-time recovery (PITR)
+
 
 ``` bash
 kubectl get backup -n cnpg-cluster
@@ -83,12 +129,15 @@ kubectl get backup -n cnpg-cluster
 ✔ WAL archive active
 
 
-
+---
 
 ## 📈 Read-Only Load Test via PgBouncer
 
-To validate read traffic through the read-only pooler, a pgbench workload was generated from a client pod inside the Kubernetes cluster.
+### Important Note on Connection Counts
 
+Although pgbench was executed with 600 concurrent clients, the number of PostgreSQL backend connections observed on standby nodes is lower.
+
+This is expected because PgBouncer uses connection pooling and multiplexes multiple client sessions over fewer database connections.
 
 
 ```bash
@@ -140,6 +189,7 @@ Result
 <img width="1152" height="772" alt="image" src="https://github.com/user-attachments/assets/69cf19ce-d845-4bc5-8385-2fb7aff976cb" />
 
 
+---
 
 ## 📊 Monitoring (Grafana)
 
@@ -187,7 +237,7 @@ Grafana was used to visualize PostgreSQL cluster performance and behavior during
 - Ensure cluster stability during traffic spikes
 
 
-
+---
 
 
 # 🔥 Failover Test (Primary Node Failure)
@@ -227,4 +277,28 @@ kubectl get cluster pg-demo -n cnpg-cluster -o jsonpath='{.status.currentPrimary
 Grafana Dashboard
 
 <img width="1725" height="782" alt="image" src="https://github.com/user-attachments/assets/dd7238bf-b1a2-48c7-9fc0-2c0141cb8908" />
+
+
+---
+### Failover Result
+
+- Primary failure was simulated successfully
+- A standby node was promoted automatically
+- No manual intervention was required
+- Cluster availability was preserved
+
+
+
+
+## 🧠 Conclusion
+
+This project demonstrates:
+
+- High availability PostgreSQL architecture
+- Automatic failover with CloudNativePG
+- Read scaling via PgBouncer
+- Reliable backup strategy using MinIO
+- Real-time monitoring with Prometheus and Grafana
+
+The system remained stable under load and successfully handled failover scenarios, making it suitable for production-like environments.
 
